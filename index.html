@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Thinking Challenge 3: Empathy Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Bangers&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Comic Neue', cursive;
+            background-color: #1e293b;
+            user-select: none;
+        }
+
+        /* Comic Book UI Styles */
+        .comic-border {
+            border: 4px solid #000;
+            box-shadow: 6px 6px 0px #000;
+            border-radius: 12px;
+        }
+        
+        .comic-text {
+            font-family: 'Bangers', cursive;
+            letter-spacing: 1px;
+        }
+
+        /* 2D Scene Layers */
+        #scene-container {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 60%, #334155 100%);
+            overflow: hidden;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 35%;
+            background-color: #451a03; /* Muddy brown */
+            border-top: 6px solid #000;
+            background-image: radial-gradient(#290f02 15%, transparent 16%), radial-gradient(#290f02 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+
+        /* Rain Animation */
+        .rain-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5;
+        }
+        .drop {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            width: 2px;
+            height: 40px;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+
+        /* Interactive Characters */
+        .character {
+            position: absolute;
+            bottom: 10%;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .character:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+
+        .character:hover .speech-bubble {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .character:active {
+            transform: scale(0.95);
+        }
+
+        .speech-bubble {
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s;
+            pointer-events: none;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            margin-left: -10px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
+            z-index: 2;
+        }
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 50%;
+            margin-left: -12px;
+            border-width: 12px 12px 0;
+            border-style: solid;
+            border-color: #000 transparent transparent transparent;
+            z-index: 1;
+        }
+
+        /* Custom scrollbar for dialogue */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-left: 2px solid #000; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border: 2px solid #000; border-radius: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 2D Comic Background Scene -->
+    <div id="scene-container">
+        <!-- Rain Layer -->
+        <div class="rain-container" id="rain-layer"></div>
+
+        <!-- Tents (Background elements) -->
+        <svg class="absolute bottom-[25%] left-[5%] w-64 h-64 opacity-80" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M10 90 L50 20 L90 90 Z" fill="#1e3a8a" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M50 20 L50 90" stroke="#000" stroke-width="2"/>
+            <rect x="40" y="60" width="20" height="30" fill="#0f172a" stroke="#000" stroke-width="2"/>
+        </svg>
+        <svg class="absolute bottom-[28%] right-[10%] w-48 h-48 opacity-70" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M10 90 L50 20 L90 90 Z" fill="#1e3a8a" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M50 20 L50 90" stroke="#000" stroke-width="2"/>
+        </svg>
+
+        <!-- Muddy Ground -->
+        <div class="ground"></div>
+
+        <!-- Character 1: Aling Nena (Community) -->
+        <div class="character left-[15%] md:left-[25%]" onclick="openDialogue('community')">
+            <div class="speech-bubble text-red-600">Click to interview<br>Aling Nena!</div>
+            <!-- Comic Character Art (SVG) -->
+            <svg width="120" height="200" viewBox="0 0 100 180">
+                <!-- Shadow -->
+                <ellipse cx="50" cy="175" rx="30" ry="8" fill="rgba(0,0,0,0.5)"/>
+                <!-- Body/Shawl -->
+                <path d="M20 170 L30 80 Q50 70 70 80 L80 170 Z" fill="#94a3b8" stroke="#000" stroke-width="4"/>
+                <path d="M25 85 Q50 120 75 85" fill="none" stroke="#000" stroke-width="3"/>
+                <!-- Head -->
+                <circle cx="50" cy="45" r="25" fill="#fcd34d" stroke="#000" stroke-width="4"/>
+                <!-- Hair -->
+                <path d="M25 45 A 25 25 0 0 1 75 45 Q70 65 50 65 Q30 65 25 45 Z" fill="#451a03" stroke="#000" stroke-width="2"/>
+                <!-- Face -->
+                <line x1="40" y1="40" x2="45" y2="40" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+                <line x1="55" y1="40" x2="60" y2="40" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+                <path d="M45 55 Q50 50 55 55" fill="none" stroke="#000" stroke-width="2"/> <!-- Sad mouth -->
+            </svg>
+            <div class="mt-2 bg-white comic-border px-3 py-1 font-bold text-sm">Aling Nena</div>
+        </div>
+
+        <!-- Character 2: Kuya Ben (Rescuer) -->
+        <div class="character right-[15%] md:right-[30%]" onclick="openDialogue('rescuer')">
+            <div class="speech-bubble text-blue-600">Click to interview<br>Kuya Ben!</div>
+            <!-- Comic Character Art (SVG) -->
+            <svg width="130" height="220" viewBox="0 0 100 190">
+                <!-- Shadow -->
+                <ellipse cx="50" cy="185" rx="35" ry="10" fill="rgba(0,0,0,0.5)"/>
+                <!-- Legs -->
+                <rect x="35" y="120" width="12" height="60" fill="#334155" stroke="#000" stroke-width="4"/>
+                <rect x="53" y="120" width="12" height="60" fill="#334155" stroke="#000" stroke-width="4"/>
+                <!-- Body/Vest -->
+                <rect x="25" y="60" width="50" height="70" rx="10" fill="#ea580c" stroke="#000" stroke-width="4"/>
+                <path d="M40 60 L40 130 M60 60 L60 130" stroke="#000" stroke-width="3"/> <!-- Vest details -->
+                <rect x="25" y="90" width="50" height="15" fill="#fbbf24" stroke="#000" stroke-width="3"/> <!-- Reflective strip -->
+                <!-- Head -->
+                <circle cx="50" cy="40" r="22" fill="#fcd34d" stroke="#000" stroke-width="4"/>
+                <!-- Hard Hat -->
+                <path d="M18 40 Q50 5 82 40 Z" fill="#fbbf24" stroke="#000" stroke-width="4"/>
+                <rect x="15" y="40" width="70" height="8" rx="4" fill="#fbbf24" stroke="#000" stroke-width="4"/>
+                <!-- Face -->
+                <circle cx="42" cy="45" r="2" fill="#000"/>
+                <circle cx="58" cy="45" r="2" fill="#000"/>
+                <line x1="45" y1="52" x2="55" y2="52" stroke="#000" stroke-width="2"/> <!-- Straight mouth -->
+            </svg>
+            <div class="mt-2 bg-white comic-border px-3 py-1 font-bold text-sm">Kuya Ben (Rescue)</div>
+        </div>
+    </div>
+
+    <!-- UI Overlay (Absolute positioned over the scene) -->
+    <div id="ui-layer" class="p-4 md:p-6 z-20 absolute inset-0 pointer-events-none">
+        
+        <!-- Header / Instructions -->
+        <div class="bg-yellow-50 comic-border p-4 max-w-4xl mx-auto pointer-events-auto mt-2">
+            <h1 class="text-2xl md:text-4xl comic-text text-blue-900 mb-2 uppercase tracking-wide">Design Challenge: Early Warning System</h1>
+            <p class="text-sm md:text-lg text-gray-800 leading-tight font-bold">
+                <span class="text-red-600">SCENARIO:</span> The power grid is destroyed. Heavy rains are resuming. Families resting in the evacuation camp won't know if flash floods approach in the dark.<br>
+                <span class="text-green-700">MISSION:</span> Interview the camp residents to complete your Empathy Map. Click on the characters to talk to them!
+            </p>
+        </div>
+
+        <!-- Empathy Map Tracker -->
+        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white comic-border p-5 pointer-events-auto hidden lg:block w-72">
+            <h2 class="text-2xl comic-text text-orange-600 mb-3 border-b-4 border-black pb-2 uppercase tracking-widest text-center">Empathy Map</h2>
+            <ul id="tracker-list" class="space-y-3 text-base font-bold text-gray-500">
+                <li id="track-pain" class="flex items-center"><div class="w-8 h-8 rounded-full border-2 border-black mr-3 flex items-center justify-center bg-gray-200"></div> PAIN</li>
+                <li id="track-say" class="flex items-center"><div class="w-8 h-8 rounded-full border-2 border-black mr-3 flex items-center justify-center bg-gray-200"></div> SAY & DO</li>
+                <li id="track-feel" class="flex items-center"><div class="w-8 h-8 rounded-full border-2 border-black mr-3 flex items-center justify-center bg-gray-200"></div> THINK & FEEL</li>
+                <li id="track-see" class="flex items-center"><div class="w-8 h-8 rounded-full border-2 border-black mr-3 flex items-center justify-center bg-gray-200"></div> SEE</li>
+                <li id="track-hear" class="flex items-center"><div class="w-8 h-8 rounded-full border-2 border-black mr-3 flex items-center justify-center bg-gray-200"></div> HEAR</li>
+                <li id="track-gain" class="flex items-center"><div class="w-8 h-8 rounded-full border-2 border-black mr-3 flex items-center justify-center bg-gray-200"></div> GAIN</li>
+            </ul>
+        </div>
+
+        <!-- Dialogue Modal (Hidden by default) -->
+        <div id="dialogue-modal" class="absolute inset-0 bg-black bg-opacity-80 hidden pointer-events-auto flex items-center justify-center p-4 z-50">
+            <div class="bg-white comic-border w-full max-w-5xl h-[85vh] flex flex-col md:flex-row overflow-hidden relative">
+                
+                <!-- Close Button -->
+                <button onclick="closeDialogue()" class="absolute top-3 right-4 bg-red-500 text-white comic-border px-3 py-1 font-black text-xl z-10 hover:bg-red-600 transform hover:scale-110 transition-transform">X</button>
+
+                <!-- Left Side: Character Image/Name -->
+                <div class="bg-blue-100 md:w-1/3 p-6 flex flex-col items-center justify-center border-b-4 md:border-b-0 md:border-r-4 border-black relative overflow-hidden">
+                    <!-- Comic halftone background pattern -->
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#000 20%, transparent 20%); background-size: 10px 10px;"></div>
+                    
+                    <div id="dialogue-avatar" class="w-40 h-40 rounded-full bg-yellow-300 comic-border flex items-center justify-center text-7xl mb-4 z-10 bg-white">
+                        👩🏽
+                    </div>
+                    <h2 id="dialogue-name" class="text-4xl comic-text text-blue-900 text-center z-10">Name</h2>
+                    <p id="dialogue-role" class="text-lg font-bold text-blue-700 text-center uppercase tracking-wide z-10 bg-white comic-border px-3 mt-2">Role</p>
+                </div>
+
+                <!-- Right Side: Interview Interaction -->
+                <div class="flex-1 flex flex-col p-6 h-full bg-gray-50 relative">
+                    
+                    <!-- Conversation History -->
+                    <div id="conversation-history" class="flex-1 overflow-y-auto mb-4 space-y-6 pr-4 pb-4">
+                        <div class="flex justify-start">
+                            <div class="bg-white comic-border p-4 max-w-[85%] relative">
+                                <!-- Tail of speech bubble -->
+                                <div class="absolute w-4 h-4 bg-white border-l-4 border-b-4 border-black transform rotate-45 -left-2 top-4"></div>
+                                <p class="text-gray-800 font-bold text-lg">Hello young leader. We are counting on you. What do you need to ask for your Empathy Map?</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prompts / Questions -->
+                    <div class="mt-auto border-t-4 border-black pt-4 bg-gray-50 z-10">
+                        <p class="text-sm comic-text text-gray-600 mb-2 uppercase tracking-wider text-center text-xl">CHOOSE A QUESTION:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="question-buttons">
+                            <!-- Buttons injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DATA: Dialogue & Prompts ---
+        const charactersData = {
+            'community': {
+                name: 'Aling Nena',
+                role: 'Evacuated Member',
+                emoji: '👩🏽',
+                dialogues: {
+                    pain: "We lost everything in the flood. Now we are in this camp, but without electricity, we are completely blind in the dark. I'm terrified the water will rise while we sleep.",
+                    say: "I tell my children to stay close. We take turns staying awake at night with a tiny flashlight just to watch the mud puddles.",
+                    feel: "I feel exhausted and scared. Every time the wind howls or the rain pours harder, my heart races. I just want to feel safe and sleep.",
+                    see: "I look around and see ruined houses, deep mud, and dark skies. The river nearby looks like it's getting angry again.",
+                    hear: "My neighbors are saying the radio warned about more rain tonight. I hear scary rumors of secondary mudslides up the mountain.",
+                    gain: "We desperately need a way to be warned. If we just had a loud alarm that works without main power... something to wake us up if the water rises... that would let us finally rest."
+                }
+            },
+            'rescuer': {
+                name: 'Kuya Ben',
+                role: 'Rescue Volunteer',
+                emoji: '👷🏽‍♂️',
+                dialogues: {
+                    pain: "Our biggest challenge right now is the total blackout. We dropped supplies earlier, but we can't monitor the flood levels at night for the entire camp.",
+                    say: "We keep telling everyone to stay alert. We do manual patrols every hour in the rain, but we can't be everywhere at once.",
+                    feel: "I'm determined but frustrated. I know these families need sleep, but the risk of flash floods tonight is too high. I feel a heavy responsibility.",
+                    see: "I see the soil is already fully saturated. Even a little more rain will cause instant runoff. And all our power lines are completely downed.",
+                    hear: "Our battery-operated radios are picking up warnings from PAGASA about incoming heavy downpours overnight. Other barangays downstream are reporting rising waters.",
+                    gain: "We need a simple, reliable early warning device. A battery-powered circuit with a loud buzzer and a switch triggered by water. If you can build that prototype, it will save lives tonight."
+                }
+            }
+        };
+
+        const questions = {
+            pain: "PAIN: What is your main problem or challenge right now?",
+            say: "SAY & DO: What do you say and do about this problem?",
+            feel: "THINK & FEEL: What are your thoughts and how do you feel?",
+            see: "SEE: What do you observe around the camp and community?",
+            hear: "HEAR: What are you hearing from others or the news?",
+            gain: "GAIN: What do you need to achieve to solve this?"
+        };
+
+        let progressTracker = { pain: false, say: false, feel: false, see: false, hear: false, gain: false };
+        let currentCharacterId = null;
+
+        // --- 2. INITIALIZATION ---
+        window.onload = () => {
+            createRain();
+        };
+
+        // Create simple DOM-based rain animation for the background
+        function createRain() {
+            const rainLayer = document.getElementById('rain-layer');
+            const dropCount = 50;
+            
+            for(let i = 0; i < dropCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('drop');
+                // Randomize position, speed, and delay
+                drop.style.left = `${Math.random() * 100}%`;
+                drop.style.top = `${Math.random() * -100}px`;
+                drop.style.animationDuration = `${Math.random() * 0.5 + 0.5}s`;
+                drop.style.animationDelay = `${Math.random() * 2}s`;
+                rainLayer.appendChild(drop);
+            }
+        }
+
+        // --- 3. UI / DIALOGUE LOGIC ---
+        
+        function renderButtons() {
+            const btnContainer = document.getElementById('question-buttons');
+            btnContainer.innerHTML = '';
+            
+            Object.keys(questions).forEach(key => {
+                const isDone = progressTracker[key];
+                const btn = document.createElement('button');
+                
+                // Comic button styling
+                btn.className = `p-3 comic-border text-left font-bold transition-transform transform hover:-translate-y-1 active:translate-y-1 text-sm md:text-base
+                    ${isDone ? 'bg-green-300 text-green-900 border-black' : 'bg-blue-200 text-blue-900 hover:bg-blue-300'}`;
+                
+                let label = key.toUpperCase();
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span>${label}</span>
+                        ${isDone ? '<span class="bg-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-black text-green-600">✓</span>' : '<span class="bg-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-black text-blue-500">?</span>'}
+                    </div>
+                `;
+                
+                btn.onclick = () => askQuestion(key);
+                btnContainer.appendChild(btn);
+            });
+        }
+
+        function openDialogue(characterId) {
+            currentCharacterId = characterId;
+            const data = charactersData[characterId];
+            
+            document.getElementById('dialogue-avatar').textContent = data.emoji;
+            document.getElementById('dialogue-name').textContent = data.name;
+            document.getElementById('dialogue-role').textContent = data.role;
+            
+            const historyDiv = document.getElementById('conversation-history');
+            historyDiv.innerHTML = `
+                <div class="flex justify-start">
+                    <div class="bg-white comic-border p-4 max-w-[85%] relative">
+                        <div class="absolute w-4 h-4 bg-white border-l-4 border-b-4 border-black transform rotate-45 -left-2 top-4"></div>
+                        <p class="text-gray-800 font-bold text-lg">Hello young leader. We are counting on you. What do you need to ask for your Empathy Map?</p>
+                    </div>
+                </div>
+            `;
+
+            renderButtons();
+
+            const modal = document.getElementById('dialogue-modal');
+            modal.classList.remove('hidden');
+        }
+
+        function askQuestion(key) {
+            const data = charactersData[currentCharacterId];
+            const questionText = questions[key];
+            const answerText = data.dialogues[key];
+            const historyDiv = document.getElementById('conversation-history');
+
+            // Add User Question (Right aligned, blue bubble)
+            historyDiv.innerHTML += `
+                <div class="flex justify-end mt-2 mb-4">
+                    <div class="bg-blue-500 text-white comic-border p-4 max-w-[85%] relative">
+                        <div class="absolute w-4 h-4 bg-blue-500 border-r-4 border-b-4 border-black transform -rotate-45 -right-2 top-4"></div>
+                        <p class="font-bold text-lg">${questionText}</p>
+                    </div>
+                </div>
+            `;
+
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+
+            // Simulate typing delay for answer
+            setTimeout(() => {
+                // Add Character Answer (Left aligned, white bubble)
+                historyDiv.innerHTML += `
+                    <div class="flex justify-start mb-4">
+                        <div class="bg-white comic-border p-4 max-w-[85%] relative">
+                            <div class="absolute w-4 h-4 bg-white border-l-4 border-b-4 border-black transform rotate-45 -left-2 top-4"></div>
+                            <p class="text-gray-800 font-bold text-lg leading-relaxed">${answerText}</p>
+                        </div>
+                    </div>
+                `;
+                historyDiv.scrollTop = historyDiv.scrollHeight;
+                
+                updateTracker(key);
+                renderButtons(); 
+            }, 600);
+        }
+
+        function updateTracker(key) {
+            if(!progressTracker[key]) {
+                progressTracker[key] = true;
+                
+                // Update Desktop Tracker list
+                const li = document.getElementById(`track-${key}`);
+                if(li) {
+                    li.classList.replace('text-gray-500', 'text-green-700');
+                    const iconBox = li.querySelector('div');
+                    iconBox.classList.replace('bg-gray-200', 'bg-green-400');
+                    iconBox.innerHTML = '✓';
+                }
+                checkCompletion();
+            }
+        }
+
+        function checkCompletion() {
+            const allDone = Object.values(progressTracker).every(val => val === true);
+            if(allDone) {
+                setTimeout(() => {
+                    const historyDiv = document.getElementById('conversation-history');
+                    historyDiv.innerHTML += `
+                        <div class="flex justify-center my-6">
+                            <div class="bg-yellow-300 comic-border p-6 text-center transform rotate-1 scale-105">
+                                <h3 class="comic-text text-3xl text-red-600 mb-2">🎉 EMPATHY MAP COMPLETE! 🎉</h3>
+                                <p class="text-black text-lg font-bold">You now know what they need. Time to build that simple circuit warning system using your batteries, switch, and buzzer!</p>
+                            </div>
+                        </div>
+                    `;
+                    historyDiv.scrollTop = historyDiv.scrollHeight;
+                }, 1000);
+            }
+        }
+
+        function closeDialogue() {
+            document.getElementById('dialogue-modal').classList.add('hidden');
+            currentCharacterId = null;
+        }
+
+    </script>
+</body>
+</html>
